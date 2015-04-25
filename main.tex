@@ -27,7 +27,6 @@
 \section{Gaussian Process}
 
 
-
 \section{Dirichlet Process}
 
 \subsection{Gaussian Mixture}
@@ -296,50 +295,25 @@ z_i & : \text{mixture indicator of } x_i
 \end{frame}
 
 \begin{frame}
+	\frametitle{Posterior Dirichlet Process}
+
+\end{frame}
+
+\begin{frame}
 	\frametitle{Dirichlet Process}
 	\begin{itemize}
 		\item{Why is DP useful for clustering?}
 		\item{Our definition is all about properties of DP. How to construct a concrete DP?}
-		\item{We're actually interested in clustering. How to sample mixture parameters $\theta_1, \theta_2, \ldots$ from $\Omega$?}	
-	\end{itemize}
-\end{frame}
-\subsection{Posterior}
-\begin{frame}
-	\frametitle{Posterior Dirichlet Process}
-	\begin{itemize}
-		\item{It seems easy to tackle the third problem}
-		\item{It's obvious that}
-		\[
-			p(\theta) \diff \theta = \int_G p(\theta|G)p(G)  G = H((\theta,\diff \theta))
-		\]
-		\item{$\theta_1, \theta_2, \ldots, \theta_n$ are independent given G}
-		\item So we can simply sample each $\theta$ from $H$, right?
-		\item No! $\theta$s are no longer indenpendent if we integrate $G$ out
-		\[
-			p(\theta_1, \theta_2, \ldots, \theta_n) = \int_G \prod_{i=1}^{n} p(\theta_i|G)p(G) \diff G
-		\]
+
 	\end{itemize}
 \end{frame}
 
+
+
+
 \begin{frame}
 	\frametitle{Posterior Dirichlet Process}
-	\begin{itemize}
-		\item Consider two samples $\theta_1, \theta_2$.
-		\begin{align*}
-			p(\theta_2 | \theta_1) & = \int_G \prod_{i=1}^{n} p(\theta_2, G| \theta_1) \diff G \\
-								& = \int_G \prod_{i=1}^{n} p(\theta_2|G) p(G|\theta_1) \diff G 
-		\end{align*}
-		\item If we can find the posterior distribution of $G$ given $\theta_1$,
-			\[
-			G|\theta_1 \sim DP(\alpha_1, H_1)
-			\]
-		\item Then sampling process becomes simple
-		\begin{align*}
-		\theta_1 & \sim H, \quad G|\theta_1 \sim \text{DP}(\alpha_1, H_1), \\
-		\theta_2 & \sim H_1, \quad G|\theta_1, \theta_2 \sim \text{DP}(\alpha_2, H_2) \\
-		\theta_3 & \sim H_2, \ldots		
-		\end{align*}
-	\end{itemize}
+
 \end{frame}
 
 \begin{frame}
@@ -405,7 +379,7 @@ z_i & : \text{mixture indicator of } x_i
 		\begin{itemize}
 		\item A sample $G$ from DP is discrete with probability 1
 		\item If we keep sampling from $G$, we'll get more and more repeated values
-		\item That's what we need for clustering
+		\item That's what we need for clustering		
 		\end{itemize}
 	\end{itemize}
 \end{frame}
@@ -413,8 +387,57 @@ z_i & : \text{mixture indicator of } x_i
 \subsection{Blackwell-MacQueen Urn Scheme}
 \begin{frame}
 \frametitle{Blackwell-MacQueen Urn Scheme}
+	\begin{itemize}
+		\item{But for clustering, we're actually interested sampling mixture parameters $\theta_1, \theta_2, \ldots$ from $\Omega$, integrating $G$ out.}
+		\item It seems easy. $\theta_1, \theta_2, \ldots, \theta_n$ are independent given G. So we can simply sample each $\theta$ from $H$ independently, right?
+		\item No! $\theta$s are no longer indenpendent if we integrate $G$ out
+		\[
+		p(\theta_1, \theta_2, \ldots, \theta_n) = \int_G \prod_{i=1}^{n} p(\theta_i|G)p(G) \diff G
+		\]
+	\end{itemize}
+\end{frame}
+\begin{frame}
+	\frametitle{Blackwell-MacQueen Urn Scheme}
+	\begin{itemize}
+		\item Consider two samples $\theta_1, \theta_2$.
+		\begin{align*}
+		p(\theta_2 | \theta_1) & = \int_G \prod_{i=1}^{n} p(\theta_2, G| \theta_1) \diff G \\
+		& = \int_G \prod_{i=1}^{n} p(\theta_2|G) p(G|\theta_1) \diff G 
+		\end{align*}
+		\item We have already known the distribution of $G$ given $\theta_1$,
+		
+		\[
+		G|\theta_1 \sim \text{DP}(\alpha+1, \frac{\alpha H + \delta_{\theta_1}}{\alpha+1})
+		\]
+		\item Then, given $\theta_1$, the second sample $\theta_2$ can be sampled from the posterior base distribution.
+		\item The sampling process becomes quite simple		
+	\end{itemize}
+\end{frame}
+\begin{frame}
+	\frametitle{Blackwell-MacQueen Urn Scheme}
+	\begin{itemize}
+		\item First sample: 
+			\[ \theta_1 \sim H, \quad G|\theta_1 \sim \text{DP}(\alpha+1, \frac{\alpha H + \delta_{\theta_1}}{\alpha+1}) \]
+		\item Second sample:
+			\[ \theta_2|\theta_1 \sim \frac{\alpha H + \delta_{\theta_1}}{\alpha+1}, \quad G|\theta_1,\theta_2 \sim \text{DP}(\alpha+2, \frac{\alpha H + \delta_{\theta_1} + \delta_{\theta_2}}{\alpha+2}) \]
+		\item $n^{th}$ sample:
+			\[ \theta_n|\theta_{1,\ldots,n-1} \sim \frac{\alpha H + \sum_{k=1}^{n-1}\delta_{\theta_k}}{\alpha+n-1}, \quad G|\theta_{1,\ldots,n} \sim \text{DP}(\alpha+n, \frac{\alpha H + \sum_{k=1}^{n}\delta_{\theta_k}}{\alpha+n}) \]
+	\end{itemize}
 \end{frame}
 
+\begin{frame}
+	\frametitle{Blackwell-MacQueen Urn Scheme}
+	\begin{itemize}
+		\item One issue, how to sample from $\frac{\alpha H + \sum_{k=1}^{n-1}\delta_{\theta_k}}{\alpha+n-1}$?
+		\begin{itemize}
+			\item With probability $\propto \alpha$, sample from $H$
+			\item With probability $\propto n-1$, randomly pick one from $\theta_1,\ldots,
+			 \theta_{n-1}$
+		\end{itemize}
+		\item The above sample process is called {\em Blackwell-MacQueen Urn Scheme}
+		\item Working with float value is annoying. Can we
+	\end{itemize}
+\end{frame}
 
 \begin{frame}
 \frametitle{Chinese Restaurant Process(CPR)}
