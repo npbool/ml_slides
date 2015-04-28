@@ -6,6 +6,7 @@
 \usepackage{tikz}
 \usepackage{color}
 \usepackage{bm}
+\usepackage{subfigure}
 \usetikzlibrary{bayesnet}
 \DeclareMathOperator*{\argmax}{arg\,max}
 \newcommand*\diff{\mathop{}\!\mathrm{d}}
@@ -157,7 +158,7 @@
 \begin{frame}
 	\frametitle{Maximum A Posteriori}
 	\begin{itemize}
-		\item We place a prior on the model
+		\item To avoid overfitting, we place a prior on the model
 		\[
 			f^* = \argmax_f \frac{p(D|f)p(f)}{p(D)}
 		\]
@@ -278,6 +279,7 @@
 			\bm{\mu_{1|2}} & = \bm{\mu _1 + \Sigma _{12}\Sigma _{22}^{ - 1}({x_2}{\rm{ - }}{\mu _2})} \\
 			\bm{\Sigma_{1|2}} & = \bm{\Sigma _{11} - \Sigma _{12}\Sigma _{22}^{ - 1}\Sigma _{21}}
 		\end{align*}
+		\item{We will use it later}
 		\item{How to get that?}
 	\end{itemize}
 \end{frame}
@@ -369,7 +371,7 @@ Note that $p(\bm{x_1|x_2}) = \frac{p(\bm{x_1, x_2})}{p(\bm{x_2})}$, and $C$ is j
 		\end{align*}	
 		Then, 
 		\[
-			 (f(\mathbf{x_1}), f(\mathbf{x_2}), \ldots, f(\mathbf{x_n}))^T \sim \mathcal{N}(\mathbf{\mu}, \mathbf{K})			 
+			 (f(\mathbf{x_1}), f(\mathbf{x_2}), \ldots, f(\mathbf{x_n}))^T \sim \mathcal{N}(\bm{\mu}, \bm{K})			 
 		\]
 		where
 		\[
@@ -389,8 +391,47 @@ Note that $p(\bm{x_1|x_2}) = \frac{p(\bm{x_1, x_2})}{p(\bm{x_2})}$, and $C$ is j
 				\end{itemize}
 			\item Test set $\mathbf{X_*}$. We want to predict outputs $f_*$
 			\item From definition of GP,
-			\[
-			\]
+		\[\left( {\begin{array}{*{20}{c}}
+			\bm{f}\\
+			{\bm{f_*}}
+			\end{array}} \right)\sim \mathcal{N}\left( {\left( {\begin{array}{*{20}{c}}
+			\bm{\mu} \\
+			{\bm{\mu _*}}
+			\end{array}} \right),\left[ {\begin{array}{*{20}{c}}
+			\bm{K}&{\bm{K_*}}\\
+			\bm{K_*^T}&{\bm{K_{**}}}
+			\end{array}} \right]} \right)\]
+	\end{itemize}
+\end{frame}
+
+\begin{frame}
+	\frametitle{GP Regression with noise-free observations}
+	\begin{itemize}
+		\item Using results of marginal multivariate Gaussian,
+		\begin{align*}
+		 p(\bm{f_*|X_*,X,f}) & = \mathcal{N}(\bm{\mu_*, \Sigma_*}) \\
+		 \bm{\mu_*} & = \bm{\mu(X_*)}+\bm{K}_*^T \bm{K}^{-1}(\bm{f-\mu(X)}) \\
+		 \bm{\Sigma_*} & = \bm{K}_{**}-\bm{K}_*^T\bm{K}^{-1}\bm{K}_*
+		\end{align*}
+		\item We usually set $\mu(\bm{x})=0$, because GP can model the mean arbitrarily well.		
+	\end{itemize}
+\end{frame}
+\begin{frame}
+	\frametitle{Visualization}
+	\begin{itemize}
+		\item Let's see some samples from GP prior and posterior.
+		\begin{figure}
+			\subfigure[prior]{
+				\includegraphics[width=0.3\columnwidth]{img/gp.png}
+			}
+			\subfigure[posterior]{
+				\includegraphics[width=0.3\columnwidth]{img/gp_posterior.png}
+			}
+		\end{figure}
+		\item {Training data points are marked with '+'}.
+		\item {No uncertainty at training data. Why?}
+		\pause
+		\item ${\bm{\Sigma_*}=\bm{K}_{**}-\bm{K}_*^T\bm{K}^{-1}\bm{K}_*}=0$ when $\bm{K_*}$ and $\bm{K}_{**}$ are sub-matrices of $\bm{K}$ -- Noise-free
 	\end{itemize}
 \end{frame}
 
@@ -634,6 +675,9 @@ Note that $p(\bm{x_1|x_2}) = \frac{p(\bm{x_1, x_2})}{p(\bm{x_2})}$, and $C$ is j
 			(\pi_{11},\pi_{12}, \pi_{21}, \pi_{22}) & \sim Dirichlet(\alpha_{11},\alpha_{12}, \alpha_{21},\alpha_{22}) \ldots 
 		\end{align*}
 		\item Because the dividing schema is arbitrary, finnally, any finite partition of $\pi$ should follow Dirichlet distribution.
+		\pause
+		\item Dirichlet Process is a generalization of Dirichlet distribution to infinite many components -- Recall Gaussian Process and multivariate Gaussian distribution.
+	
 	\end{itemize}
 \end{frame}
 
@@ -673,6 +717,7 @@ Note that $p(\bm{x_1|x_2}) = \frac{p(\bm{x_1, x_2})}{p(\bm{x_2})}$, and $C$ is j
 \begin{frame}
 	\frametitle{Posterior Dirichlet Process}
 	\begin{itemize}
+		\item We'll need the posterior Dirichlet Process later
 		\item Suppose $G \sim DP(\alpha, H)$, $\theta \sim G$
 		\item What is $p(\theta)$ and $G|\theta$?
 		\pause
@@ -689,9 +734,10 @@ Note that $p(\bm{x_1|x_2}) = \frac{p(\bm{x_1, x_2})}{p(\bm{x_2})}$, and $C$ is j
 	\begin{itemize}
 
 		\item Using dirichlet-multinomial conjugacy, for any partition $(A_1, \ldots, A_n)$,
-		\[
-		(G(A_1), \ldots, G(A_n))|\theta \sim \text{Dirichlet}(\alpha H(A_1)+\delta_{\theta}(A_1), \ldots, \alpha H(A_n)+\delta_{\theta}(A_1))
-		\]
+		\begin{align*}
+		& (G(A_1), \ldots, G(A_n))|\theta \\
+		\sim & \text{Dirichlet}(\alpha H(A_1)+\delta_{\theta}(A_1), \ldots, \alpha H(A_n)+\delta_{\theta}(A_n))
+		\end{align*}
 		where $\delta_{\theta}(A)=1$ iff. $\theta \in A$
 		\pause
 		\item So 
@@ -752,9 +798,12 @@ Note that $p(\bm{x_1|x_2}) = \frac{p(\bm{x_1, x_2})}{p(\bm{x_2})}$, and $C$ is j
 		\item The above process is called the {\em stick breaking construction}
 		\item What can we find about DP from this construction?
 		\begin{itemize}
-		\item A sample $G$ from DP is discrete with probability 1
-		\item If we keep sampling from $G$, we'll get more and more repeated values
-		\item That's reasonable for clustering	
+		\pause
+		\item A sample $G$ from DP is {\color{red}discrete} with probability 1
+		\pause
+		\item If we keep sampling from $G$, we'll get more and more {\color{red}repeated} values
+		\pause
+		\item That's reasonable for clustering (why?)
 		\end{itemize}
 	\end{itemize}
 \end{frame}
@@ -763,8 +812,10 @@ Note that $p(\bm{x_1|x_2}) = \frac{p(\bm{x_1, x_2})}{p(\bm{x_2})}$, and $C$ is j
 \begin{frame}
 \frametitle{Blackwell-MacQueen Urn Scheme}
 	\begin{itemize}
-		\item{But for clustering, we're actually interested sampling mixture parameters $\theta_1, \theta_2, \ldots$ from $\Omega$, integrating $G$ out.}
+		\item{But for clustering, we're actually interested in sampling mixture parameters $\theta_1, \theta_2, \ldots$ from $\Omega$, integrating $G$ out.}
+		\pause
 		\item It seems easy. $\theta_1, \theta_2, \ldots, \theta_n$ are independent given G. So we can simply sample each $\theta$ from $H$ independently, right?
+		\pause
 		\item No! $\theta$s are no longer indenpendent if we integrate $G$ out
 		\[
 		p(\theta_1, \theta_2, \ldots, \theta_n) = \int_G \prod_{i=1}^{n} p(\theta_i|G)p(G) \diff G
@@ -810,8 +861,8 @@ Note that $p(\bm{x_1|x_2}) = \frac{p(\bm{x_1, x_2})}{p(\bm{x_2})}$, and $C$ is j
 			 \theta_{n-1}$
 		\end{itemize}
 		\item The above sample process is called {\em Blackwell-MacQueen Urn Scheme}
-		\item Samples $\theta_1, \ldots, \theta_n$ induces a partition over $1,\ldots,n$
-		\item Working with float value is annoying. We can postpone sampling from $H$ -- Chinese Restaurant Process
+		\item Samples $\theta_1, \ldots, \theta_n$ induces a partition over $1,\ldots,n$, if we cluster repeated values together
+		\item Working with float value is annoying. We can postpone sampling from $H$ -- {\color{red}Chinese Restaurant Process}
 	\end{itemize}
 \end{frame}
 
@@ -819,7 +870,7 @@ Note that $p(\bm{x_1|x_2}) = \frac{p(\bm{x_1, x_2})}{p(\bm{x_2})}$, and $C$ is j
 \begin{frame}
 \frametitle{Chinese Restaurant Process}
 	\begin{itemize}
-		\item Generating process of CPR:
+		\item Generating process of CRP:
 		\begin{itemize}
 			\item First customer sits at the first table.
 			\item $n^{th}$ customer
@@ -835,7 +886,7 @@ Note that $p(\bm{x_1|x_2}) = \frac{p(\bm{x_1, x_2})}{p(\bm{x_2})}$, and $C$ is j
 \end{frame}
 
 \begin{frame}
-	\frametitle{CPR and DP}
+	\frametitle{CRP and DP}
 	\begin{itemize}
 		\item We can prove that the order of customer coming in doesn't affect partition probability
 		\item Infinite Exchangeability:
@@ -851,10 +902,10 @@ Note that $p(\bm{x_1|x_2}) = \frac{p(\bm{x_1, x_2})}{p(\bm{x_2})}$, and $C$ is j
 \end{frame}
 
 \begin{frame}
-	\frametitle{CPR and Clustering}
+	\frametitle{CRP and Clustering}
 	\begin{itemize}
 		\item We can view {\em data points} as customers, {\em clusters} as tables.
-		\item CPR defines a prior distribution on partition (cluster) of data. Number of clusters can be induced
+		\item CRP defines a prior distribution on partition (cluster) of data. Number of clusters can be induced
 		\item Combined with a parameterized probability distribution for each cluster, we can get a posterior
 		\item That's all we need in cluster settings
 	\end{itemize}
@@ -863,11 +914,11 @@ Note that $p(\bm{x_1|x_2}) = \frac{p(\bm{x_1, x_2})}{p(\bm{x_2})}$, and $C$ is j
 \subsection{DP Mixture Inference}
 
 \begin{frame}
-	\frametitle{DP Mixtures Inference}
+	\frametitle{Gibbs Sampling DP Mixtures}
 	\begin{itemize}
 		\item Go back to original Gaussian Mixture clustering model. Let's place $DP(\alpha,H)$ as prior of $G$ -- DP mixture
 		\item Introduce $z_i$ as cluster indicator for each $x_i$
-		\item We use collapsed Gibbs sampling for inference
+		\item We use {\color{red} collapsed} Gibbs sampling for inference
 		\[
 			p(z_i=k|\bm{z}_{-i},\bm{x},\bm{\nu},\alpha) \propto p(z_i=k|\bm{z}_{-i}, \alpha)p(x_i|\bm{x}_{-i}, z_i=k, \bm{z}_{-i}, \bm{\nu})
 		\]
@@ -881,7 +932,7 @@ Note that $p(\bm{x_1|x_2}) = \frac{p(\bm{x_1, x_2})}{p(\bm{x_2})}$, and $C$ is j
 \end{frame}
 
 \begin{frame}
-	\frametitle{DP Mixtures Inference}
+	\frametitle{Gibbs Sampling for DP Mixtures}
 	\begin{itemize}
 		\item What is $p(x_i|\bm{x}_{-i}, z_i=k, \bm{z}_{-i}, \bm{\nu})$ ?
 		\item For new component $K+1$, $x_i$ is conditional indenpendent from other data points
@@ -894,14 +945,21 @@ Note that $p(\bm{x_1|x_2}) = \frac{p(\bm{x_1, x_2})}{p(\bm{x_2})}$, and $C$ is j
 		p(x_i|\bm{x}_{-i}, z_i=k, \bm{z}_{-i}, \bm{\nu})
 		= \frac{p(x_i, \bm{x}_{-i}^{(k)}|\nu)}{p(\bm{x}_{-i}^{(k)}|\nu)}
 		\]		
+		It's model specific.
 	\end{itemize}
 \end{frame}
-
-\section{Gaussian Process}
 \begin{frame}
-	\frametitle{Gaussian Process}
+	\frametitle{Visulization}
+	\centering{
+	\includegraphics[width=0.7\textwidth]{img/dpmixture.png}
+	}
+\end{frame}
+\begin{frame}
+	\frametitle{Other methods}
 	\begin{itemize}
-		\item {Definition}
+		\item I don't like sampling. Is there any analytic method?
+		\item Based on the stick-breaking construction, we have a variational method.
+		\item But we won't cover it here.
 	\end{itemize}
 \end{frame}
 
