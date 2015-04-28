@@ -362,7 +362,7 @@ Note that $p(\bm{x_1|x_2}) = \frac{p(\bm{x_1, x_2})}{p(\bm{x_2})}$, and $C$ is j
 \begin{frame}
 	\frametitle{Gaussian Process}
 	\begin{itemize}
-		\item Gaussian Process is a generalization of multivariate Gaussian to infinite variables -- kind of {\em stochastic process}
+		\item Gaussian Process is a generalization of multivariate Gaussian to infinite variables -- {\em stochastic process}
 		\item $\forall \mathbf{x_1}, \ldots, \mathbf{x_n}, (f(\mathbf{x_1}), \ldots, f(\mathbf{x_n}))$ is jointly Gaussian
 		\item A Gaussian Process is fully specified by mean function $m(x)$ and covariance $\kappa(\mathbf{x}, \mathbf{x'})$
 		\begin{align*}
@@ -434,7 +434,25 @@ Note that $p(\bm{x_1|x_2}) = \frac{p(\bm{x_1, x_2})}{p(\bm{x_2})}$, and $C$ is j
 		\item ${\bm{\Sigma_*}=\bm{K}_{**}-\bm{K}_*^T\bm{K}^{-1}\bm{K}_*}=0$ when $\bm{K_*}$ and $\bm{K}_{**}$ are sub-matrices of $\bm{K}$ -- Noise-free
 	\end{itemize}
 \end{frame}
-
+\begin{frame}
+	\frametitle{GP Regression with noisy observations}
+	\begin{itemize}
+		\item When observations are noisy, the true $f$ is hidden.
+		\item Instead, we observe $f$ plus a Gaussian noise 
+			\[
+				y=f(\bm{x})+\epsilon
+			\]
+			where\[
+			\epsilon \sim \mathcal{N}(0, \sigma_y^2)
+			\]
+		\item Now \[
+		\text{cov}[y_p, y_q] = \kappa(\bm{x_p, x_q})+\sigma_y^2\delta_{pq}
+		\] in other words
+		\[
+		\text{cov}[\bm{y|X}] = \bm{K}+\sigma_y^2 \bm{I} \triangleq \bm{K}_y
+		\]
+	\end{itemize}
+\end{frame}
 \section{Dirichlet Process}
 \begin{frame}
 	\frametitle{Example: Clustering}
