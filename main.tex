@@ -7,6 +7,7 @@
 \usepackage{color}
 \usepackage{bm}
 \usetikzlibrary{bayesnet}
+\DeclareMathOperator*{\argmax}{arg\,max}
 \newcommand*\diff{\mathop{}\!\mathrm{d}}
 \newcommand*\Diff[1]{\mathop{}\!\mathrm{d^#1}}
 \title{Nonparametric Bayesian Models}
@@ -27,22 +28,27 @@
 \begin{frame}
 	\frametitle{Introduction}
 	\begin{itemize}
-		\item We'll talk about {\em nonparametric Bayesian methods} now
+		\item We'll talk about {\em nonparametric Bayesian methods} in following slides
+		\begin{itemize}
+			\item Regression, classification -- Gaussian Process
+			\item Clustering -- Dirichlet Process
+		\end{itemize}
 		\item What is {\em nonparametric} ?
+		\item What is {\em Bayesian} ?
 	\end{itemize}
 \end{frame}
 
 \begin{frame}
-	\frametitle{What is Nonparametric Model}
+	\frametitle{What is Nonparametric Model?}
 	\begin{itemize}
-		\item Nonparametric doesn't mean there is no parameters.
+		\item Nonparametric doesn't mean there are no parameters.
 		\item {\color{red} Parametric} model assumes a finite set of parameters.
 		\begin{itemize}
 			\item Finite model parameters captures everything about the data
 			\item Predictions for future data are made merely through parameters, independent from observed data.			
 			\item Model complexity are bounded, even with infinite data 	
 		\end{itemize}
-		\item {\color{red} Nonparametric} assume the model can't be defined by a finite set of parameters. But often a infinite-dimensional parameter space will work.
+		\item {\color{red} Nonparametric} model assumes the model can't be specified by a finite set of parameters. But often a infinite-dimensional parameter space will work.
 		\begin{itemize}
 			\item Model complexity can grow with data
 		\end{itemize}
@@ -91,6 +97,20 @@
 \end{frame}
 
 \begin{frame}
+	\frametitle{What about SVM?}
+	\begin{itemize}
+		\item {Linear SVM}
+		\[
+			y=\text{sign}(w^Tx)
+		\]
+		\pause
+		\item {Kernel SVM}
+		\[
+			y=\text{sign}(\sum_i \alpha_i y_i\kappa(x_i, x)))
+		\]
+	\end{itemize}
+\end{frame}
+\begin{frame}
 	\frametitle{Parametric vs. Nonparametric}
 	\begin{itemize}
 		\item Parametric Models:
@@ -107,6 +127,171 @@
 	\end{itemize}
 \end{frame}
 
+\begin{frame}
+	\frametitle{What is Bayesian?}
+	\begin{itemize}
+		\item Consider a regression problem
+		\item Given training data $D$, we aim to find a model $f$. For each sample $x$, return a prediction $y$
+		\item How to give an optimal $y$?
+		\begin{itemize}
+			\pause
+			\item MLE
+			\item MAP
+			\item Bayesian
+		\end{itemize}
+	\end{itemize}
+\end{frame}
+\begin{frame}
+	\frametitle{Maximum Likelihood Estimation}
+	\begin{itemize}
+		\item In training, we maximize a likelihood
+		\[
+			f^* = \argmax_f L(f|D) = \argmax_f p(D|f)
+		\]
+		\item In prediction, just feed $f$ with $x$
+		\[
+			p(y|x, D)=p(y|f^*, x)
+		\]
+	\end{itemize}
+\end{frame}
+\begin{frame}
+	\frametitle{Maximum A Posteriori}
+	\begin{itemize}
+		\item We place a prior on the model
+		\[
+			f^* = \argmax_f \frac{p(D|f)p(f)}{p(D)}
+		\]
+		\item Prediction process remains the same
+		\[
+			p(y|x, D)=p(y|f^*, x)
+		\]
+	\end{itemize}
+\end{frame}
+\begin{frame}
+	\frametitle{Bayesian Model}
+	\begin{itemize}
+		\item In training, we just estimate the posterior distribution of $f$ (same as MAP)
+		\[
+			p(f|D) = \frac{p(D|f)p(f)}{p(D)}
+		\]
+		\item In prediction, we no longer want a pointwise estimation. Instead, we consider all possible models and take the expection
+		\[
+			p(y|x, D)=\int_f p(y|f,x)p(f|D)\diff f
+		\]
+	\end{itemize}
+\end{frame}
+\begin{frame}
+	\frametitle{Why Bayesian?}
+	\begin{itemize}
+		\item Infinite Exchangeability:
+		\[
+		\forall n, \forall \sigma, p(x_1, \ldots, x_n)=p(x_{\sigma(1)},\ldots, x_{\sigma(n)})
+		\]
+		\item De Finetti’s Theorem: If $(x_1, x_2, \ldots)$ are infinite exchangable, then there exists a random variable $f$, $\forall n$, 
+		\[
+		p(x_1, \ldots, x_n) = \int_{f} \prod_{i=1}^n p(x_i|f)p(f) \diff f
+		\]
+		\pause
+		\item \em{How to define the prior $p(f)$}?
+	\end{itemize}		
+\end{frame}
+
+\begin{frame}
+	\frametitle{Parametric Approach}
+	\begin{itemize}
+		\item In previous courses, we focused on parametric representation of $f$, e.g.
+		\[
+			f(x)=w^Tx
+		\]
+		\item We define prior on the parameters like
+		\[
+			p(w) \sim \mathcal{N}(0, \sigma^2 I)
+		\]
+		\item Now, we define the prior on the function $f$ itself. 
+	\end{itemize}	
+\end{frame}
+
+\section{Gaussian Process}
+\subsection{Multivariate Gaussian Distribution}
+\begin{frame}
+	\frametitle{Warmup: Multivariate Gaussian}
+	\begin{itemize}
+		\item Before introducing Gaussian Process, let's recall multivariate Gaussian distribution first.
+		\item We say a $n$-dimensional random variable $\mathbf{x}$ follows multivariate Gaussian 
+			\[
+				 \bm{x} \sim \mathcal{N}(\bm{\mu}, \bm{\Sigma})
+			\]
+			if
+			\[
+				p(\bm{x}) = \frac{1}{{\sqrt {{{(2\pi )}^n}{\rm{|}}\bm{\Sigma} {\rm{|}}} }}\exp \{  - \frac{1}{2}{(\bm{x-\mu})^T}{\bm{\Sigma} ^{ - 1}}({\bm{x - \mu}})\}
+			\]
+			where
+			\begin{align*}
+				& \mathbb{E}[\mathbf{x}] = \bm{\mu} \\
+				& \mathbb{E}[(x_i-\mu_i)(x_j-\mu_j)] = \Sigma_{ij}
+			\end{align*}
+	\end{itemize}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Marginal distribution}
+	\begin{itemize}
+		\item Suppose
+
+		\[\left[ {\begin{array}{*{20}{c}}
+			{\bm{x_1}}\\
+			{\bm{x_2}}
+			\end{array}} \right] \sim \mathcal{N}\left( {\left[ {\begin{array}{*{20}{c}}
+				{\bm{\mu _1}}\\
+				{\bm{\mu _2}}
+				\end{array}} \right],\left[ {\begin{array}{*{20}{c}}
+				{\bm{\Sigma _{11}}}&{\bm{\Sigma _{12}}}\\
+				{\bm{\Sigma _{21}}}&{\bm{\Sigma _{22}}}
+				\end{array}} \right]} \right)\]
+
+		\item Integrating $\bm{x_2}$ out, 
+		\[
+			\bm{x_1} \sim \mathcal{N}(\bm{\mu_1}, \bm{\Sigma_{11}})
+		\]
+		\item Just drop irrelevant components
+	\end{itemize}
+\end{frame}
+
+\subsection{Definition}
+\begin{frame}
+	\frametitle{Gaussian Process}
+	\begin{itemize}
+		\item Gaussian Process is a stochastic process, that $\forall \mathbf{x_1}, \ldots, \mathbf{x_n}, (f(\mathbf{x_1}), \ldots, f(\mathbf{x_n}))$ is jointly Gaussian
+		\item A Gaussian Process is fully specified by mean function $m(x)$ and covariance $\kappa(\mathbf{x}, \mathbf{x'})$
+		\begin{align*}
+				m(\mathbf{x}) &= \mathbb{E}[f(\mathbf{x})] \\
+				\kappa(\mathbf{\mathbf{x}}, \mathbf{\mathbf{x'}}) &= \mathbb{E}[(f(\mathbf{x})-m(\mathbf{x}))(f(\mathbf{x'})-m(\mathbf{x'}))]				
+		\end{align*}	
+		Then, 
+		\[
+			 (f(\mathbf{x_1}), f(\mathbf{x_2}), \ldots, f(\mathbf{x_n}))^T \sim \mathcal{N}(\mathbf{\mu}, \mathbf{K})			 
+		\]
+		where
+		\[
+			\mu_i = m(\mathbf{x_i}), K_{ij} = \kappa(\mathbf{x}_i, \mathbf{x}_j)
+		\]
+		\item We require $\kappa$ to be a positive definite kernel.
+	\end{itemize}
+\end{frame}
+\subsection{GP regression}
+\begin{frame}
+	\frametitle{GP Regression with noise-free observations}
+	\begin{itemize}
+			\item For simplicity, let's start with predictions using noise free observations
+			\item Training set $D=\{(x_i, f_i)\}$, where $f_i=f(x_i)$
+				\begin{itemize}
+					\item Noise free! -- No uncertainty.
+				\end{itemize}
+			\item Test set $\mathbf{X_*}$. We want to predict outputs $f_*$
+	\end{itemize}
+\end{frame}
+
+\section{Dirichlet Process}
 \begin{frame}
 	\frametitle{Example: Clustering}
 	\begin{itemize}
@@ -174,9 +359,6 @@
 		\item What if let $K \rightarrow \infty$?
 	\end{itemize}
 \end{frame}
-
-\section{Dirichlet Process}
-
 
 \begin{frame}
 	\frametitle{Infinity Mixture Models}	
@@ -555,7 +737,7 @@
 		\item We can prove that the order of customer coming in doesn't affect partition probability
 		\item Infinite Exchangeability:
 			\[
-			\forall n, \forall \sigma, p(x_1, \ldots, x_n)=p(x_\sigma(1),\ldots, x_\sigma(n))
+			\forall n, \forall \sigma, p(x_1, \ldots, x_n)=p(x_{\sigma(1)},\ldots, x_{\sigma(n)})
 			\]
 		\item De Finetti’s Theorem: If $(x_1, x_2, \ldots)$ are infinite exchangable, then there exists a random variable $\theta$, $\forall n$, 
 			\[
