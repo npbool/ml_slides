@@ -203,11 +203,11 @@
 		\[
 			f(x)=w^Tx
 		\]
-		\item We define prior on the parameters like
+		\item Instead of defining prior on function itself, we define prior on the parameters
 		\[
-			p(w) \sim \mathcal{N}(0, \sigma^2 I)
+			p(w) = \mathcal{N}(0, \sigma^2 I)
 		\]
-		\item Now, we define the prior on the function $f$ itself. 
+		\item Now, we define the prior on the function $f$ directly
 	\end{itemize}	
 \end{frame}
 
@@ -234,7 +234,7 @@
 \end{frame}
 
 \begin{frame}
-	\frametitle{Marginal distribution}
+	\frametitle{Marginal Distribution}
 	\begin{itemize}
 		\item Suppose
 
@@ -257,11 +257,111 @@
 	\end{itemize}
 \end{frame}
 
+\begin{frame}
+	\frametitle{Contitional Distribution}
+	\begin{itemize}
+		\item Suppose
+		
+		\[\left[ {\begin{array}{*{20}{c}}
+			{\bm{x_1}}\\
+			{\bm{x_2}}
+			\end{array}} \right] \sim \mathcal{N}\left( {\left[ {\begin{array}{*{20}{c}}
+				{\bm{\mu _1}}\\
+				{\bm{\mu _2}}
+				\end{array}} \right],\left[ {\begin{array}{*{20}{c}}
+				{\bm{\Sigma _{11}}}&{\bm{\Sigma _{12}}}\\
+				{\bm{\Sigma _{21}}}&{\bm{\Sigma _{22}}}
+				\end{array}} \right]} \right)\]
+		\item Then
+		\begin{align*}
+			p(\bm{x_1|x_2}) &= \mathcal{N}(\bm{x_1|\mu_{1|2}, \Sigma_{1|2}}) \\
+			\bm{\mu_{1|2}} & = \bm{\mu _1 + \Sigma _{12}\Sigma _{22}^{ - 1}({x_2}{\rm{ - }}{\mu _2})} \\
+			\bm{\Sigma_{1|2}} & = \bm{\Sigma _{11} - \Sigma _{12}\Sigma _{22}^{ - 1}\Sigma _{21}}
+		\end{align*}
+		\item{How to get that?}
+	\end{itemize}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Some Detail}
+	First, we diagonalize the variance matrix to ease the inverse matrix calculation
+	\[\left[ {\begin{array}{*{20}{c}}
+	{{\Sigma _{11}}/{\Sigma _{22}}}&O\\
+	O&{{\Sigma _{22}}}
+	\end{array}} \right] = \left[ {\begin{array}{*{20}{c}}
+	{{I_1}}&{ - {\Sigma _{12}}\Sigma _{22}^{ - 1}}\\
+	O&{{I_2}}
+	\end{array}} \right]\left[ {\begin{array}{*{20}{c}}
+	{{\Sigma _{11}}}&{{\Sigma _{12}}}\\
+	{{\Sigma _{21}}}&{{\Sigma _{22}}}
+	\end{array}} \right]\left[ {\begin{array}{*{20}{c}}
+	{{I_1}}&O\\
+	{ - \Sigma _{22}^{ - 1}{\Sigma _{21}}}&{{I_2}}
+	\end{array}} \right]\]
+	Define ${\Sigma _{11}}/{\Sigma _{22}} = {\Sigma _{11}} - {\Sigma _{12}}\Sigma _{22}^{ - 1}{\Sigma _{21}}$.
+	Then
+	\[
+	\begin{split}
+	{\left[ {\begin{array}{*{20}{c}}
+			{{\Sigma _{11}}}&{{\Sigma _{12}}}\\
+			{{\Sigma _{21}}}&{{\Sigma _{22}}}
+			\end{array}} \right]^{ - 1}} = & \left[ {\begin{array}{*{20}{c}}
+		{{I_1}}&O\\
+		{ - \Sigma _{22}^{ - 1}{\Sigma _{21}}}&{{I_2}}
+		\end{array}} \right] \\
+		& \left[ {\begin{array}{*{20}{c}}
+		{{{({\Sigma _{11}}/{\Sigma _{22}})}^{ - 1}}}&O\\
+		O&{\Sigma _{22}^{ - 1}}
+		\end{array}} \right]\left[ {\begin{array}{*{20}{c}}
+		{{I_1}}&{ - {\Sigma _{12}}\Sigma _{22}^{ - 1}}\\
+		O&{{I_2}}
+		\end{array}} \right]
+	\end{split}
+	\]
+\end{frame}
+\begin{frame}
+	\frametitle{More Detail}
+	Check the exponent of $p(\bm{x_1, x_2})$:
+	
+\[\arraycolsep=1.4pt\def\arraystretch{1.2}
+\begin{array}{l}
+\quad ({x_1} - {\mu _1},{x_2} - {\mu _2}){\left[ {\begin{array}{*{20}{c}}
+		{{\Sigma _{11}}}&{{\Sigma _{12}}}\\
+		{{\Sigma _{21}}}&{{\Sigma _{22}}}
+		\end{array}} \right]^{ - 1}}\left( {\begin{array}{*{20}{c}}
+	{{x_1} - {\mu _1}}\\
+	{{x_2} - {\mu _2}}
+	\end{array}} \right)\\
+= {\left( {\begin{array}{*{20}{c}}
+		{{x_1} - {\mu _1}}\\
+		{{x_2} - {\mu _2}}
+		\end{array}} \right)^T}\left[ {\begin{array}{*{20}{c}}
+	{{I_1}}&O\\
+	{ - \Sigma _{22}^{ - 1}{\Sigma _{21}}}&{{I_2}}
+	\end{array}} \right]\left[ {\begin{array}{*{20}{c}}
+	{{{({\Sigma _{11}}/{\Sigma _{22}})}^{ - 1}}}&O\\
+	O&{\Sigma _{22}^{ - 1}}
+	\end{array}} \right]\\
+\qquad \left[ {\begin{array}{*{20}{c}}
+	{{I_1}}&{ - {\Sigma _{12}}\Sigma _{22}^{ - 1}}\\
+	O&{{I_2}}
+	\end{array}} \right]\left( {\begin{array}{*{20}{c}}
+	{{x_1} - {\mu _1}}\\
+	{{x_2} - {\mu _2}}
+	\end{array}} \right)\\
+	= {({x_1} - {\mu _1} - {\Sigma _{12}}\Sigma _{22}^{ - 1}({x_2} - {\mu _2}))^T}{({\Sigma _{11}}/{\Sigma _{22}})^{ - 1}}\\
+\qquad({x_1} - {\mu _1} - {\Sigma _{12}}\Sigma _{22}^{ - 1}({x_2} - {\mu _2})) + C
+	\end{array}
+	\]
+Note that $p(\bm{x_1|x_2}) = \frac{p(\bm{x_1, x_2})}{p(\bm{x_2})}$, and $C$ is just the exponent of $p(\bm{x_2})$. From the equation we can get the mean and variance of the conditional distribution.	
+\end{frame}
+	
 \subsection{Definition}
 \begin{frame}
 	\frametitle{Gaussian Process}
 	\begin{itemize}
-		\item Gaussian Process is a stochastic process, that $\forall \mathbf{x_1}, \ldots, \mathbf{x_n}, (f(\mathbf{x_1}), \ldots, f(\mathbf{x_n}))$ is jointly Gaussian
+		\item Gaussian Process is a generalization of multivariate Gaussian to infinite variables -- kind of {\em stochastic process}
+		\item $\forall \mathbf{x_1}, \ldots, \mathbf{x_n}, (f(\mathbf{x_1}), \ldots, f(\mathbf{x_n}))$ is jointly Gaussian
 		\item A Gaussian Process is fully specified by mean function $m(x)$ and covariance $\kappa(\mathbf{x}, \mathbf{x'})$
 		\begin{align*}
 				m(\mathbf{x}) &= \mathbb{E}[f(\mathbf{x})] \\
@@ -288,6 +388,9 @@
 					\item Noise free! -- No uncertainty.
 				\end{itemize}
 			\item Test set $\mathbf{X_*}$. We want to predict outputs $f_*$
+			\item From definition of GP,
+			\[
+			\]
 	\end{itemize}
 \end{frame}
 
