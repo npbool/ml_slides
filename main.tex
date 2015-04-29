@@ -11,6 +11,8 @@
 \DeclareMathOperator*{\argmax}{arg\,max}
 \newcommand*\diff{\mathop{}\!\mathrm{d}}
 \newcommand*\Diff[1]{\mathop{}\!\mathrm{d^#1}}
+
+\AtBeginSection{\frame{\sectionpage}}
 \title{Nonparametric Bayesian Models}
 \author{Jie Tang}
 
@@ -60,7 +62,9 @@
 	\frametitle{Example: Classification}
 	\begin{itemize}
 		\item{Consider a linear model}
-		\includegraphics[width=0.6\textwidth]{img/linear.png}
+		\begin{figure}
+			\includegraphics[width=0.4\textwidth]{img/linear.png}
+		\end{figure}
 		\item{No matter how many samples are trained, number of parameters are fixed $(w,b)$}
 	\end{itemize}
 \end{frame}
@@ -175,7 +179,7 @@
 		\[
 			p(f|D) = \frac{p(D|f)p(f)}{p(D)}
 		\]
-		\item In prediction, we no longer want a pointwise estimation. Instead, we consider all possible models and take the expection
+		\item In prediction, we no longer want a point estimation. Instead, we consider all possible models and take the expection
 		\[
 			p(y|x, D)=\int_f p(y|f,x)p(f|D)\diff f
 		\]
@@ -364,7 +368,7 @@ Note that $p(\bm{x_1|x_2}) = \frac{p(\bm{x_1, x_2})}{p(\bm{x_2})}$, and $C$ is j
 	\begin{itemize}
 		\item Gaussian Process is a generalization of multivariate Gaussian to infinite variables -- {\em stochastic process}
 		\item $\forall \mathbf{x_1}, \ldots, \mathbf{x_n}, (f(\mathbf{x_1}), \ldots, f(\mathbf{x_n}))$ is jointly Gaussian
-		\item A Gaussian Process is fully specified by mean function $m(x)$ and covariance $\kappa(\mathbf{x}, \mathbf{x'})$
+		\item A Gaussian Process is fully specified by mean function $m(x)$ and covariance function $\kappa(\mathbf{x}, \mathbf{x'})$
 		\begin{align*}
 				m(\mathbf{x}) &= \mathbb{E}[f(\mathbf{x})] \\
 				\kappa(\mathbf{\mathbf{x}}, \mathbf{\mathbf{x'}}) &= \mathbb{E}[(f(\mathbf{x})-m(\mathbf{x}))(f(\mathbf{x'})-m(\mathbf{x'}))]				
@@ -380,6 +384,7 @@ Note that $p(\bm{x_1|x_2}) = \frac{p(\bm{x_1, x_2})}{p(\bm{x_2})}$, and $C$ is j
 		\item We require $\kappa$ to be a positive definite kernel.
 	\end{itemize}
 \end{frame}
+
 \subsection{GP regression}
 \begin{frame}
 	\frametitle{GP Regression with noise-free observations}
@@ -453,6 +458,148 @@ Note that $p(\bm{x_1|x_2}) = \frac{p(\bm{x_1, x_2})}{p(\bm{x_2})}$, and $C$ is j
 		\]
 	\end{itemize}
 \end{frame}
+\begin{frame}
+	\frametitle{GP Regression with noisy observations}
+	\begin{itemize}
+		\item Take $m(\bm{x})=0$ here
+		\item Similar to noise-free result
+		\[\left( {\begin{array}{*{20}{c}}
+			\bm{y}\\
+			{\bm{f_*}}
+			\end{array}} \right)\sim \mathcal{N}\left( 0, {\left[ {\begin{array}{*{20}{c}}
+				\bm{K_y}&{\bm{K_*}}\\
+				\bm{K_*^T}&{\bm{K_{**}}}
+				\end{array}} \right]} \right)\]
+			\begin{align*}
+			p(\bm{f_*|X_*,X,y}) & = \mathcal{N}(\bm{\mu_*, \Sigma_*}) \\
+			\bm{\mu_*} & = \bm{K}_*^T \bm{K_y}^{-1}\bm{y} \\
+			\bm{\Sigma_*} & = \bm{K}_{**}-\bm{K}_*^T\bm{K_y}^{-1}\bm{K}_*
+			\end{align*}
+	\end{itemize}
+\end{frame}
+\begin{frame}
+	\frametitle{Deeper Insight}
+	\begin{itemize}
+		\item {Feed the result with a single sample $\bm{x_*}$}
+			\begin{align*}
+			p(f_*|\bm{x_*,X,y}) &= \mathcal{N}(\bm{k}_*^T \bm{K_y}^{-1}\bm{y}, k_{**}-\bm{k}_*^T\bm{K_y}^{-1}\bm{k}_*) \\
+			\bar{f_*} & = \sum_i \alpha_i \kappa(\bm{x_i, x_*}) \qquad \bm{\alpha}=\bm{K_y}^{-1}\bm{y}
+			\end{align*}
+		\item {What can we find?}
+		\pause
+		\item Although we define GP on infinite dimension, it's suffices to consider only $n+1$ dimension. 
+		\item GP regression can be considered as linear predictor when features are projected to high dimension space using feature map $\phi(\cdot)$ implied by $\kappa$.	(Recall $\kappa(x_i, x_j) = \phi(x_i)^T\phi(x_j)$)
+	\end{itemize}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Effect of Kernel Parameters}
+	\begin{itemize}
+		\item Kernel parameters are crucial in GP
+		\item RBF kernel: $\kappa(\bm{x}_i, \bm{x}_j) = \sigma_f^2 \exp \{ (\bm{x}_i-\bm{x}_j)^T \bm{M}(\bm{x}_i-\bm{x}_j) \} +\sigma_y^2 \delta_{ij}$
+			\begin{itemize}
+				\item $M=I$
+				\item $M=\text{diag}(1,3)^{-2}$
+				\item $M=(1,-1;-1,1)+\text{diag}(6,6)^{-2}$
+			\end{itemize}
+			\begin{figure}
+				\centering
+				\includegraphics[width=0.5\textwidth]{img/kernel_param.png}
+			\end{figure}
+	\end{itemize}	
+\end{frame}
+\begin{frame}
+	\frametitle{Kernel Parameter Estimation}
+	\begin{itemize}
+		\item How to find best kernel parameter?
+		\item Exhaustive search (used in SVM): slow
+		\item Full Bayesian inference: slow, too
+		\item Empirical Bayes: Maximize {\color{red}marginal} likelihood of training data
+			\begin{align*}
+				p(\bm{y}|\bm{X}, \theta) & = \int_f p(\bm{y}|\bm{f}) p(\bm{f}|\bm{X}, \theta) \diff f \\				
+				\log p(\bm{y}|\bm{X}, \theta) & = \log \mathcal{N}(\bm{y}|\bm{0}, \bm{K}_y) \\
+				& = -\frac{1}{2} \bm{y}^T\bm{K}_y^{ - 1}\bm{y} - \frac{1}{2}\log |\bm{K}_y| - \frac{N}{2}\log (2\pi)
+			\end{align*}
+		\item Gradient ascent
+			\[
+			\frac{\partial }{\partial \theta _j} \log p(\bm{y}|\bm{X}, \theta) = 
+			-\frac{1}{2} \bm{y}^T\bm{K}_y^{-1}  \frac{\partial \bm{K_y}}{\partial \theta_j} \bm{K}_y^{-1}\bm{y} - \frac{1}{2} \text{tr}(\bm{K}_y^{-1}\frac{\partial \bm{K_y}}{\partial \theta_j})
+			\]
+	\end{itemize}
+\end{frame}
+
+\subsection{GP classification}
+\begin{frame}
+	\frametitle{GP Classification}
+	\begin{itemize}
+		\item {It's natural to apply GP to classification, because the underlying relation between regression and classification}
+		\[ p(y_*|\bm{x}_*, \bm{X}, \bm{y})=\int_f p(y|f,\bm{x})p(f|\bm{X}, \bm{y})\diff f, \quad y=\pm 1 \]
+		\item Difficulty: Gaussian is not conjugate to bernoulli likelihood! e.g. logistic
+		\[
+			p(y|f, \bm{x}) = \frac{1}{1+e^{-yf(\bm{x})}}
+		\]
+		\item Solution: Approximation
+		\item We'll use Laplace approximation, because it's simplest.
+	\end{itemize}	
+\end{frame}
+
+\begin{frame}
+	\frametitle{Laplace Approximation}
+	\begin{itemize}
+		\item Approximating a difficult distribution $p(\bm{z})$ with Gaussian		
+		\item Find a stationary point $\bm{z_0}$, where $\nabla f(\bm{z_0}) = 0$
+		\item Calculate Hessian matrix
+		\[
+			A = -\nabla^2 f(\bm{z})|_{\bm{z_0}}
+		\]
+		\item Gaussian approximation
+		\[
+			q(\bm{z}) = \mathcal{N}(\bm{z}_0, A^{-1})
+		\]
+		\item Why does it work? See other references			
+	\end{itemize}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Laplace Approximation for GP}
+	\begin{itemize}
+	\item Find the stationary point $\hat{\bm{f}}$ of posterior $p(\bm{f|X,y})$
+		\begin{itemize}
+			\item Take log
+			\begin{align*}
+			l(\bm{f}) & = \log p(\bm{y|f}) + \log p(\bm{f|X}) \\
+			& = \log p(\bm{y|f}) - \frac{1}{2}\bm{f^T K^{-1} f} - \frac{1}{2}|\bm{K}|-\frac{n}{2}\log 2\pi
+			\end{align*}
+			\item Take derivative
+			\begin{align*}
+			\nabla l(\bm{f}) & = \nabla \log p(\bm{y|f}) - \bm{K^{-1}}\bm{f} \\
+			\nabla^2 l(\bm{f}) &= \nabla^2 \log p(\bm{y|f}) - \bm{K^{-1}} = -\bm{W} - \bm{K}^{-1}			
+			\end{align*}
+			\item $\bm{W}$ is diagonal since data are indenpendent.
+			\item Numerical optimization method
+			\[
+			\bm{f^{t+1}} = \bm{f}^t - (\nabla^2 l(\bm{f}))^{-1} \nabla l(\bm{f})
+			\]
+		\end{itemize}
+	\end{itemize}
+\end{frame}
+\begin{frame}
+	\frametitle{Laplace Approximation for GP}
+	\begin{itemize}
+		\item Gaussian Approximation
+		\[
+		p(\bm{f|X,y}) = \mathcal{N}(\hat{\bm{f}}, (\bm{W} + \bm{K}^{-1})^{-1})
+		\]
+		\item Mean as prediction
+		\begin{align*}
+		\mathbb{E}[f_*|\bm{x_*, X, y}] & = \int_{\bm{f}} \mathbb{E}[f_*|\bm{f, x_*, X, y}]p(\bm{f|X,y}) \diff \bm{f} \\
+		& = \int_{\bm{f}} \bm{k_*^T K^{-1} f} p(\bm{f|X,y}) \diff f \\
+		& \simeq \bm{k_*^T K^{-1} \hat{f}}
+		\end{align*}
+		\item Can be extended to multi-class situation.
+	\end{itemize}
+\end{frame}
+
 \section{Dirichlet Process}
 \begin{frame}
 	\frametitle{Example: Clustering}
@@ -980,5 +1127,12 @@ Note that $p(\bm{x_1|x_2}) = \frac{p(\bm{x_1, x_2})}{p(\bm{x_2})}$, and $C$ is j
 		\item But we won't cover it here.
 	\end{itemize}
 \end{frame}
+
+\begin{frame}[plain] 
+	\begin{center} 
+		\Huge Thank you? 
+	\end{center} 
+\end{frame} 
+\end{document} 
 
 \end{document}
